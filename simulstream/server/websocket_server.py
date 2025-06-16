@@ -45,10 +45,12 @@ LOGGER = logging.getLogger('fbk_fairseq.simultaneous.websocket_server')
 
 def connection_handler_factory(
         server_config: SimpleNamespace,
-        speech_processor: SpeechProcessor) -> Callable[[ServerConnection], Awaitable[None]]:
+        speech_processor_config: SimpleNamespace) -> Callable[[ServerConnection], Awaitable[None]]:
     """
     Returns a connection handler function that has in scope the given arguments.
     """
+    speech_processor = build_speech_processor(speech_processor_config)
+
     async def process_audio(
             websocket: ServerConnection,
             client_id: int,
@@ -122,12 +124,14 @@ def connection_handler_factory(
                         LOGGER.error(
                             f"Invalid string message: {message}. Error: {e}. Ignoring it.")
             processed_audio_seconds += len(client_buffer) / 2 / sample_rate
-            await process_audio(
-                websocket,
-                client_id,
-                client_buffer,
-                sample_rate,
-                processed_audio_seconds)
+            if client_buffer:
+                # process remaining audio after last chunk
+                await process_audio(
+                    websocket,
+                    client_id,
+                    client_buffer,
+                    sample_rate,
+                    processed_audio_seconds)
         except websockets.exceptions.ConnectionClosed:
             LOGGER.info(f"Client {client_id} disconnected.")
         except Exception as e:
@@ -170,7 +174,7 @@ async def main(args: argparse.Namespace):
     speech_processor_config = yaml_config(args.speech_processor_config)
     LOGGER.info(f"Using as speech processor: {speech_processor_config.type}")
     speech_processor_loading_time = time.time()
-    speech_processor = build_speech_processor(speech_processor_config)
+    build_speech_processor(speech_processor_config)
     speech_processor_loading_time = time.time() - speech_processor_loading_time
     LOGGER.info(f"Loaded speech processor in {speech_processor_loading_time:.3f} seconds")
     METRICS_LOGGER.info(json.dumps({
@@ -178,9 +182,10 @@ async def main(args: argparse.Namespace):
     }))
     LOGGER.info(f"Serving websocket server at {server_config.hostname}:{server_config.port}")
     async with serve(
-            connection_handler_factory(server_config, speech_processor),
+            connection_handler_factory(server_config, speech_processor_config),
             server_config.hostname,
-            server_config.port) as server:
+            server_config.port,
+            ping_timeout=None) as server:
         await server.serve_forever()
 
 

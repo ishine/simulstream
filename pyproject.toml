@@ -24,6 +24,7 @@ Issues = "https://github.com/hlt-mt/simuldemo/issues"
 
 [project.scripts]
 simulstream_server = "simulstream.server.websocket_server:cli_main"
+simulstream_wavs_client = "simulstream.client.wav_reader_client:cli_main"
 
 [project.optional-dependencies]
 dev = [

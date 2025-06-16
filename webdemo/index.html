@@ -20,209 +20,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>🎙️ FBK Simultaneous Translation Demo</title>
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, rgb(9,73,154), #3b82f6);
-      color: #333;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-    
-    .logo {
-      position: absolute;
-      top: 3em;
-      right: 3em;
-      width: auto;
-      height: 6em;
-    }
-
-    .logo img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-
-    .container {
-      background: rgba(255, 255, 255, 0.6);
-      padding: 40px;
-      border-radius: 20px;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
-      text-align: center;
-      backdrop-filter: blur(12px);
-      animation: fadeIn 1s ease-in-out;
-      width: 90%;
-      max-width: 600px;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.95); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
-      color: #222;
-    }
-
-    canvas {
-      width: 100%;
-      height: 100px;
-      background: #ffffff;
-      border-radius: 10px;
-      margin: 20px 0;
-      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .controls {
-      margin: 20px 0;
-    }
-
-    button {
-      padding: 12px 24px;
-      margin: 0 10px;
-      border: none;
-      border-radius: 30px;
-      font-size: 16px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s ease;
-    }
-
-    #startBtn {
-      background: linear-gradient(to right, #10b981, #34d399);
-      color: white;
-    }
-
-    #startBtn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
-    }
-
-    #stopBtn {
-      background: linear-gradient(to right, #ef4444, #f87171);
-      color: white;
-    }
-
-    #stopBtn:hover {
-      transform: scale(1.05);
-      box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
-    }
-
-    #status {
-      font-size: 1rem;
-      margin-top: 10px;
-      color: #444;
-    }
-
-    .pulse {
-      display: inline-block;
-      width: 10px;
-      height: 10px;
-      margin-right: 8px;
-      background-color: #10b981;
-      border-radius: 50%;
-      animation: pulse 1s infinite;
-      vertical-align: middle;
-    }
-
-    .pulse.red {
-      background-color: #ef4444;
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-      }
-      50% {
-        transform: scale(1.5);
-        opacity: 0.5;
-      }
-    }
-    
-    .footer {
-      position: absolute;
-      bottom: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.9rem;
-      color: #555;
-      background: rgba(255, 255, 255, 0.5);
-      padding: 6px 12px;
-      border-radius: 12px;
-      backdrop-filter: blur(5px);
-      font-weight: 500;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .footer-logo {
-      height: 4em;
-      width: auto;
-    }
-
-    .language-selector {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 20px;
-      font-size: 1rem;
-      color: #333;
-    }
-
-    .language-selector select {
-      padding: 6px 10px;
-      font-size: 1rem;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background: #fff;
-      cursor: pointer;
-      transition: border 0.2s;
-    }
-
-    .language-selector select:hover {
-      border-color: #0078D7;
-    }
-
-    #transcript-box {
-      margin-top: 20px;
-      padding: 15px;
-      background: #f9f9fc;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      height: 8em;
-      overflow-y: auto;
-      font-family: "Segoe UI", sans-serif;
-      font-size: 1rem;
-      color: #333;
-      line-height: 1.4;
-      transition: all 0.3s ease;
-    }
-
-    #transcript-box h3 {
-      margin: 0 0 10px 0;
-      font-size: 1.1rem;
-      color: #444;
-    }
-
-    #transcript-text {
-      white-space: pre-wrap;
-    }
-
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -360,16 +158,6 @@
       return int16;
     }
 
-    function resampleTo16kHz(input, fromRate) {
-      const ratio = fromRate / 16000;
-      const length = Math.floor(input.length / ratio);
-      const output = new Float32Array(length);
-      for (let i = 0; i < length; i++) {
-        output[i] = input[Math.floor(i * ratio)];
-      }
-      return output;
-    }
-
     startBtn.addEventListener('click', async () => {
       if (!navigator.mediaDevices) {
         alert("Your browser doesn't support audio recording.");
@@ -394,6 +182,11 @@
           const secure = config.secure ? 's' : '';
           return 'ws' + secure + '://' + config.hostname + ':' + config.port;
         });
+        if (socket) {
+          socket.close();
+          const transcriptText = document.getElementById('transcript-text');
+          transcriptText.textContent = '';
+        }
         socket = new WebSocket(websocker_url);
 
         socket.onopen = () => {
@@ -426,11 +219,7 @@
 
         processorNode.port.onmessage = (event) => {
           if (event.data.length > 0 && socket.readyState === WebSocket.OPEN) {
-            const float32 = event.data;
-            // const resampled = resampleTo16kHz(float32, inputSampleRate);
-            // Convert Float32Array to Int16Array for compactness
-            // const int16 = float32ToInt16(resampled);
-            const int16 = float32ToInt16(float32);
+            const int16 = float32ToInt16(event.data);
             socket.send(int16.buffer);
           }
         };
@@ -446,9 +235,8 @@
     stopBtn.addEventListener('click', () => {
       if (processorNode) processorNode.disconnect();
       if (audioContext) audioContext.close();
-      if (socket) socket.close();
       if (stream) stream.getTracks().forEach(track => track.stop());
-      updateStatus("Stopped and connection closed.", 'red');
+      updateStatus("Stopped.", 'red');
       cancelAnimationFrame(animationId);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       startBtn.disabled = false;

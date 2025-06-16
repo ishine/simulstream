@@ -27,20 +27,21 @@ class HFSlidingWindowRetranslator(BaseSpeechProcessor):
 
     @classmethod
     def load_model(cls, config: SimpleNamespace):
-        lang_tags = None
-        if hasattr(config, "supported_langs") and config.supported_langs is not None:
-            lang_tags = [config.lang_tag_template.format(lang) for lang in config.supported_langs]
-        cls.processor = AutoProcessor.from_pretrained(
-            config.hf_model_name,
-            additional_special_tokens=lang_tags)
-        cls.model = AutoModelForSpeechSeq2Seq.from_pretrained(
-            config.hf_model_name, trust_remote_code=True)
-        cls.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        cls.model.to(cls.device)
+        if not hasattr(cls, "model") or cls.model is None:
+            lang_tags = None
+            if hasattr(config, "supported_langs") and config.supported_langs is not None:
+                lang_tags = [config.lang_tag_template.format(lang) for lang in config.supported_langs]
+            cls.processor = AutoProcessor.from_pretrained(
+                config.hf_model_name,
+                additional_special_tokens=lang_tags)
+            cls.model = AutoModelForSpeechSeq2Seq.from_pretrained(
+                config.hf_model_name, trust_remote_code=True)
+            cls.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            cls.model.to(cls.device)
 
     def __init__(self, config: SimpleNamespace):
         super().__init__(config)
-        self.window_len = self.config.window_len * 100  # 10 ms for each frame
+        self.window_len = self.config.window_len * SAMPLE_RATE
         self.matching_threshold = getattr(self.config, "matching_threshold", 0.1)
 
     def _generate(self, speech: torch.Tensor) -> List[str]:
@@ -57,17 +58,17 @@ class HFSlidingWindowRetranslator(BaseSpeechProcessor):
         history. Returns the concatenated audio history and new frames, taking the last
         `self.window_len` frames, and returns it after storing it in the audio history.
         """
+        if self.audio_history is not None:
+            waveform = np.concat((self.audio_history, waveform))
+        new_speech_len = len(waveform)
+        if new_speech_len > self.window_len:
+            waveform = waveform[-self.window_len:]
+        self.audio_history = waveform
         new_speech = self.processor(
             waveform,
             sampling_rate=SAMPLE_RATE,
             return_tensors="pt")["input_features"]
         new_speech.to(self.device)
-        if self.audio_history is not None:
-            new_speech = torch.concat([self.audio_history, new_speech], dim=1)
-        new_speech_len = new_speech.shape[1]
-        if new_speech_len > self.window_len:
-            new_speech = new_speech[:, -self.window_len:, :]
-        self.audio_history = new_speech
         return new_speech
 
     def _build_incremental_outputs(self, generated_tokens: List[str]) -> IncrementalOutput:
