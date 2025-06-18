@@ -69,8 +69,7 @@ class HFSlidingWindowRetranslator(BaseSpeechProcessor):
             waveform,
             sampling_rate=SAMPLE_RATE,
             return_tensors="pt")["input_features"]
-        new_speech.to(self.device)
-        return new_speech
+        return new_speech.to(self.device)
 
     def _build_incremental_outputs(self, generated_tokens: List[str]) -> IncrementalOutput:
         """
