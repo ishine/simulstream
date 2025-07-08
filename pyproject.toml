@@ -23,8 +23,14 @@ GitHub = "https://github.com/hlt-mt/simuldemo"
 Issues = "https://github.com/hlt-mt/simuldemo/issues"
 
 [project.scripts]
+# Server
 simulstream_server = "simulstream.server.websocket_server:cli_main"
+
+# Client
 simulstream_wavs_client = "simulstream.client.wav_reader_client:cli_main"
+
+# Evaluation
+simulstream_comet = "simulstream.metrics.comet:cli_main"
 
 [project.optional-dependencies]
 dev = [
@@ -34,6 +40,10 @@ dev = [
 
 hf = [
     "transformers==4.48.1",
+]
+
+eval = [
+    "unbabel-comet==2.2.4"
 ]
 
 [tool.setuptools.dynamic]
