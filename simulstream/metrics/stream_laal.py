@@ -18,8 +18,8 @@ from typing import Dict, List, Tuple
 
 import simulstream
 from simulstream.config import yaml_config
-from simulstream.metrics.readers import LogReader, YamlReferenceReader, ReferenceSentenceDefinition, \
-    OutputWithDelays, text_items
+from simulstream.metrics.readers import LogReader, YamlReferenceReader, \
+    ReferenceSentenceDefinition, OutputWithDelays, text_items
 from simulstream.metrics.resegmenter import levenshtein_align_hypothesis_to_reference
 
 
@@ -43,21 +43,6 @@ def laal(delays: List[float], source_length: float, target_length: int) -> float
     `Controllable Latency using Prefix-to-Prefix Framework
     <https://arxiv.org/abs/1810.08398>`_
     but is robust to the length difference between the hypothesis and reference.
-
-    Give source :math:`X`, target :math:`Y`, delays :math:`D`,
-
-    .. math::
-
-        LAAL = \frac{1}{\tau} \sum_i^\tau D_i - (i - 1) \frac{|X|}{max(|Y|,|Y*|)}
-
-    Where
-
-    .. math::
-
-        \tau = argmin_i(D_i = |X|)
-
-    When reference was given, :math:`|Y|` would be the reference length, and :math:`|Y*|` is the
-    length of the hypothesis.
 
     The implementation is derived by that available in SimulEval (see `latency_scorer.py` in
     `https://github.com/facebookresearch/SimulEval/).

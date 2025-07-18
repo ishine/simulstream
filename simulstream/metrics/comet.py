@@ -103,16 +103,16 @@ def cli_main():
         "--references", nargs="+", type=str, required=True,
         help="Path to the textual files containing references. If `--audio-definition` is "
              "specified, this should be a single file containing all the lines of the audios in "
-             "the reference, which should be of the same length of the audio definition. Otherwise "
-             "this should be a list of files, where each contains the lines corresponding to an "
-             "audio file.")
+             "the reference, which should be of the same length of the audio definition. "
+             "Otherwise, this should be a list of files, where each contains the lines "
+             "corresponding to an audio file.")
     parser.add_argument(
         "--transcripts", nargs="+", type=str, required=True,
         help="Path to the textual files containing transcripts. If `--audio-definition` is "
              "specified, this should be a single file containing all the lines of the audios in "
-             "the reference, which should be of the same length of the audio definition. Otherwise "
-             "this should be a list of files, where each contains the lines corresponding to an "
-             "audio file.")
+             "the reference, which should be of the same length of the audio definition. "
+             "Otherwise, this should be a list of files, where each contains the lines "
+             "corresponding to an audio file.")
     parser.add_argument(
         "--audio-definition", "-a", type=str, default=None,
         help="Path to the yaml file containing the segment-level audio information.")
