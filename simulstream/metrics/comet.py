@@ -19,7 +19,7 @@ from typing import Dict, List
 
 import simulstream
 from simulstream.config import yaml_config
-from simulstream.metrics.reader import LogReader, ReferenceReader
+from simulstream.metrics.readers import LogReader, ReferencesReader, YamlReferenceReader
 from simulstream.metrics.resegmenter import levenshtein_align_hypothesis_to_reference
 
 
@@ -54,7 +54,7 @@ def score_st(
         resegm_hypos = levenshtein_align_hypothesis_to_reference([hypo], ref_lines)
 
         assert len(ref_lines) == len(resegm_hypos), \
-            f"Reference ({name}) has mismatched number of target ({len(resegm_hypos)}) " \
+            f"Reference ({name}) has mismatched number of target ({len(ref_lines)}) " \
             f"and resegmented lines ({len(resegm_hypos)})"
         for hyp, ref, src in zip(resegm_hypos, ref_lines, src_lines):
             comet_data.append({
@@ -73,20 +73,49 @@ def main(args: argparse.Namespace):
     LOGGER.info(f"Loading evaluation configuration from {args.eval_config}")
     eval_config = yaml_config(args.eval_config)
     log_reader = LogReader(eval_config, args.log_file)
-    reference_reader = ReferenceReader(args.references)
-    transcripts_reader = ReferenceReader(args.transcripts)
+    if args.audio_definition is not None:
+        assert len(args.references) == 1, \
+            "When audio definition is provided, only one reference file should be provided."
+        assert len(args.transcripts) == 1, \
+            "When audio definition is provided, only one transcript file should be provided."
+        reference_reader = YamlReferenceReader(args.audio_definition, args.references[0])
+        transcripts_reader = YamlReferenceReader(args.audio_definition, args.transcripts[0])
+    else:
+        reference_reader = ReferencesReader(args.references)
+        transcripts_reader = ReferencesReader(args.transcripts)
     comet_score = score_st(
-        log_reader.final_outputs(), reference_reader.get_all(), transcripts_reader.get_all())
+        log_reader.final_outputs(),
+        reference_reader.get_reference_texts(),
+        transcripts_reader.get_reference_texts())
     print(f"COMET score: {comet_score}")
 
 
 def cli_main():
     LOGGER.info(f"Simulstream version: {simulstream.__version__}")
     parser = argparse.ArgumentParser("comet")
-    parser.add_argument("--eval-config", type=str, required=True)
-    parser.add_argument("--log-file", type=str, required=True)
-    parser.add_argument("--references", nargs="+", type=str, required=True)
-    parser.add_argument("--transcripts", nargs="+", type=str, required=True)
+    parser.add_argument(
+        "--eval-config", type=str, required=True,
+        help="Path to the yaml config file containing information about the tokenizer to be used.")
+    parser.add_argument(
+        "--log-file", type=str, required=True,
+        help="Path to the log file with the metrics to be used for the evaluation.")
+    parser.add_argument(
+        "--references", nargs="+", type=str, required=True,
+        help="Path to the textual files containing references. If `--audio-definition` is "
+             "specified, this should be a single file containing all the lines of the audios in "
+             "the reference, which should be of the same length of the audio definition. Otherwise "
+             "this should be a list of files, where each contains the lines corresponding to an "
+             "audio file.")
+    parser.add_argument(
+        "--transcripts", nargs="+", type=str, required=True,
+        help="Path to the textual files containing transcripts. If `--audio-definition` is "
+             "specified, this should be a single file containing all the lines of the audios in "
+             "the reference, which should be of the same length of the audio definition. Otherwise "
+             "this should be a list of files, where each contains the lines corresponding to an "
+             "audio file.")
+    parser.add_argument(
+        "--audio-definition", "-a", type=str, default=None,
+        help="Path to the yaml file containing the segment-level audio information.")
     args = parser.parse_args()
     main(args)
 

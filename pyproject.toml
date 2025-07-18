@@ -31,6 +31,7 @@ simulstream_wavs_client = "simulstream.client.wav_reader_client:cli_main"
 
 # Evaluation
 simulstream_comet = "simulstream.metrics.comet:cli_main"
+simulstream_streamlaal = "simulstream.metrics.stream_laal:cli_main"
 
 [project.optional-dependencies]
 dev = [

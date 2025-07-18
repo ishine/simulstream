@@ -36,13 +36,14 @@ def levenshtein_align_hypothesis_to_reference(
 
         return word_without_punctuation
 
-    all_reference_words = [
+    all_reference_words_normalized = [
         normalize_word(word) for segment in reference for word in segment.split(" ")]
     all_hypothesis_words = [
-        normalize_word(word) for segment in hypothesis for word in segment.split(" ")]
+        word for segment in hypothesis for word in segment.split(" ")]
+    all_hypothesis_words_normalized = [normalize_word(word) for word in all_hypothesis_words]
 
     reference_string, hypothesis_string = _map_words_to_characters(
-        all_reference_words, all_hypothesis_words)
+        all_reference_words_normalized, all_hypothesis_words_normalized)
 
     opcodes = Levenshtein.opcodes(reference_string, hypothesis_string)
 
