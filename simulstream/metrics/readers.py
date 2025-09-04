@@ -94,6 +94,17 @@ class LogReader:
                     data.append(json.loads(line))
         return data
 
+    def num_deleted_tokens(self) -> int:
+        num_deleted_tokens = 0
+        for audio, lines in self.outputs_by_audio.items():
+            for line in lines:
+                if len(line['deleted_tokens']) > 0:
+                    num_deleted_tokens += len(
+                        text_items(
+                            self.detokenizer(line['deleted_tokens']),
+                            latency_unit=self.latency_unit))
+        return num_deleted_tokens
+
     def final_outputs_and_latencies(self) -> Dict[str, OutputWithDelays]:
         """
         Returns the final outputs for each audio with delays. This means that overridden tokens in

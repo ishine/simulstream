@@ -32,6 +32,7 @@ simulstream_wavs_client = "simulstream.client.wav_reader_client:cli_main"
 # Evaluation
 simulstream_score_quality = "simulstream.metrics.score_quality:cli_main"
 simulstream_score_latency = "simulstream.metrics.score_latency:cli_main"
+simulstream_stats = "simulstream.metrics.stats:cli_main"
 
 [project.optional-dependencies]
 dev = [
@@ -55,6 +56,7 @@ vad = [
 eval = [
     "unbabel-comet==2.2.6",
     "mweralign",
+    "sacrebleu"
 ]
 
 [tool.setuptools.dynamic]
