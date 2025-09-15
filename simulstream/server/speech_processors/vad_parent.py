@@ -36,7 +36,7 @@ class VADParentSpeechProcessor(SpeechProcessor):
     Args:
         config (SimpleNamespace): Configuration object. The following attributes are used:
 
-            - **vad_threshold (float, optional)**: Probability threshold for VAD. Default = ``0.5``.
+            - **vad_threshold (float, optional)**: VAD probability threshold. Default = ``0.5``.
             - **vad_min_silence_duration_ms (int, optional)**: Minimum silence duration
               (milliseconds) to consider the end of a speech segment. Default = ``100``.
             - **vad_speech_pad_ms (int, optional)**: Padding (milliseconds) to include before and
