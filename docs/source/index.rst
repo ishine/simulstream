@@ -7,8 +7,10 @@ Welcome to *simulstream* documentation
 =====================================
 
 ``simulstream`` is a Python library for simultaneous/streaming speech recognition and translation.
-It enables both the simulation with existing files to score systems, like in the SimulEval project,
-and the possibility to run demos on a browser.
+It enables both the simulation with existing files to score systems, like in the SimulEval_
+project, and the possibility to run demos on a browser.
+
+.. _SimulEval: https://github.com/facebookresearch/SimulEval
 
 ``simulstream`` provides a WebSocket server and utilities for running streaming speech processing
 experiments and demos. It supports real-time transcription and translation through streaming audio

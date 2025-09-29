@@ -17,7 +17,7 @@ Below, you can find a simple illustration of the overall architecture with the t
 
 .. image:: ../source/_static/architecture.png
 
-Server
+WebSocket Server
 ______
 
 Run the WebSocket server with YAML configuration files::
@@ -41,7 +41,7 @@ You can also check the examples of speech processors available in the repository
 for your implementation. Notice that each speech processor can have additional dependencies that
 are not installed by default with this codebase (see :doc:`installation`).
 
-Web Client
+HTTP Server Web Client
 __________
 
 For a demo, you can create an HTTP web server that servers a web interface interacting with the
@@ -62,8 +62,8 @@ through the address specified in the ``config/server.yaml`` file.
 Python Client
 _____________
 
-If you want to score your system on a set of audio files (e.g. a test set), send the audios for
-processing with the provided client::
+If you want to process a set of audio files (e.g. a test set) with your system, send the audios
+with the provided client::
 
     simulstream_wavs_client --uri ws://localhost:8080/ \
         --wav-list-file PATH_TO_TXT_FILE_WITH_A_LIST_OF_WAV_FILES.txt \

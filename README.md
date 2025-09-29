@@ -1,8 +1,9 @@
 # simulstream
 
 ``simulstream`` is a Python library for simultaneous/streaming speech recognition and translation.
-It enables both the simulation with existing files to score systems, like in the SimulEval project,
-and the possibility to run demos on a browser.
+It enables both the simulation with existing files to score systems, like in the
+[SimulEval](https://github.com/facebookresearch/SimulEval) project, and the possibility to run
+demos on a browser.
 
 ``simulstream`` provides a WebSocket server and utilities for running streaming speech processing
 experiments and demos. It supports real-time transcription and translation through streaming audio
@@ -76,9 +77,9 @@ Below, you can find a simple illustration of the overall architecture with the t
 
 <img src="docs/source/_static/architecture.png" alt="Overall simulstream architecture">
 
-### Server
+### WebSocket Server
 
-Run the WebSocket server with YAML configuration files::
+Run the WebSocket server with YAML configuration files:
 
 ```shell
 simulstream_server --server-config config/server.yaml \
@@ -88,7 +89,7 @@ simulstream_server --server-config config/server.yaml \
 The repository contains examples of YAML files both for the server and for some speech processors.
 They can be edited and adapted.
 
-### Customize with Your Speech Processor
+#### Customize with Your Speech Processor
 
 If you want to implement your own ``speech_processor``, you need to create a subclass
 of ``simulstream.server.speech_processors.base.SpeechProcessor`` and add the class
@@ -104,10 +105,10 @@ Notice that each speech processor can have additional dependencies that  are not
 default with this codebase (see [Installation](#installation)).
 
 
-### Web Client
+### HTTP Server Web Client
 
 For a demo, you can create an HTTP web server that servers a web interface interacting with the
-WebSocket server. This can be done by::
+WebSocket server. This can be done by:
 
 ```shell
 simulstream_demo_http_server --config config/server.yaml -p 8001 --directory webdemo
@@ -127,8 +128,8 @@ through the address specified in the ``config/server.yaml`` file.
 ### Python Client
 
 
-If you want to score your system on a set of audio files (e.g. a test set), send the audios for
-processing with the provided client::
+If you want to process a set of audio files (e.g. a test set) with your system, send the audios
+with the provided client:
 
 ```shell
 simulstream_wavs_client --uri ws://localhost:8080/ \
@@ -151,7 +152,7 @@ the files sent by the client. Then, compute the relevant scores as described bel
 
 
 To evaluate your system, take the JSONL file written by the server after the execution of the
-Python client (e.g. ``metrics.jsonl``) and run::
+Python client (e.g. ``metrics.jsonl``) and run:
 
 ```shell
 simulstream_score_latency --scorer stream_laal \
