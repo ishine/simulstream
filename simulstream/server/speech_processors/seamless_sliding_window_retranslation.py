@@ -42,7 +42,7 @@ class SeamlessSlidingWindowRetranslator(SlidingWindowRetranslator):
             cls.model.to(cls.device)
 
     def _generate(self, speech: torch.Tensor) -> List[str]:
-        speech_seconds = speech.shape[1] / 100  # 1 frame every 10 ms
+        speech_seconds = speech.shape[1] / 50  # 1 frame every 20 ms
         extra_kwargs = {
             "max_new_tokens": int(max(self.max_tokens_per_second * speech_seconds, 10)),
             "generate_speech": False
