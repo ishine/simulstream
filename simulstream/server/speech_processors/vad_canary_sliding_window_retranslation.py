@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from typing import List
-
 from simulstream.server.speech_processors.canary_sliding_window_retranslation import \
     CanarySlidingWindowRetranslator
 from simulstream.server.speech_processors.vad_parent import VADParentSpeechProcessor
@@ -25,6 +23,3 @@ class VADCanarySlidingWindowRetranslator(VADParentSpeechProcessor):
     """
 
     speech_processor_class = CanarySlidingWindowRetranslator
-
-    def _tokens_to_string(self, tokens: List[str]) -> str:
-        return self.speech_processor._tokens_to_string(tokens)

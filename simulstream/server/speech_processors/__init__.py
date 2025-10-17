@@ -13,45 +13,18 @@
 # limitations under the License
 
 import importlib
-import json
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from types import SimpleNamespace
 from typing import List
 
 import numpy as np
 
+from simulstream.server.speech_processors.incremental_output import IncrementalOutput
+
 
 CHANNELS = 1
 SAMPLE_WIDTH = 2
 SAMPLE_RATE = 16_000
-
-
-@dataclass
-class IncrementalOutput:
-    """
-    Represents the incremental output of a speech processor for a single
-    processed chunk of audio.
-
-    Attributes:
-        new_tokens (List[str]): List of newly generated tokens in this chunk.
-        new_string (str): Concatenated string representation of the new tokens.
-        deleted_tokens (List[str]): List of tokens that were deleted/overwritten.
-        deleted_string (str): Concatenated string representation of the deleted tokens.
-    """
-    new_tokens: List[str]
-    new_string: str
-    deleted_tokens: List[str]
-    deleted_string: str
-
-    def strings_to_json(self) -> str:
-        """
-        Serialize the incremental output to a JSON string.
-
-        Returns:
-            str: A JSON string containing the newly generated and the deleted text.
-        """
-        return json.dumps({"new": self.new_string, "deleted": self.deleted_string})
 
 
 class SpeechProcessor(ABC):
@@ -70,6 +43,13 @@ class SpeechProcessor(ABC):
             config (SimpleNamespace): Configuration loaded from a YAML file.
         """
         self.config = config
+
+    @property
+    def speech_chunk_size(self) -> float:
+        """
+        Return the size of the speech chunks to be processed (in seconds).
+        """
+        return self.config.speech_chunk_size
 
     @classmethod
     @abstractmethod
@@ -114,6 +94,27 @@ class SpeechProcessor(ABC):
 
         Args:
             language (str): Language code (e.g., ``"en"``, ``"it"``).
+        """
+        ...
+
+    @abstractmethod
+    def end_of_stream(self) -> IncrementalOutput:
+        """
+        This method is called at the end of audio chunk processing. It can be used to emit
+        hypotheses at the end of the speech to conclude the output.
+
+        Returns:
+            IncrementalOutput: The incremental output (new and deleted tokens/strings).
+        """
+        ...
+
+    @abstractmethod
+    def tokens_to_string(self, tokens: List[str]) -> str:
+        """
+        Converts token sequences into human-readable strings.
+
+        Returns:
+            str: The textual representation of the tokens.
         """
         ...
 

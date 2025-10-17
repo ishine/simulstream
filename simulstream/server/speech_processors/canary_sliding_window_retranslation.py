@@ -42,7 +42,7 @@ class CanarySlidingWindowRetranslator(SlidingWindowRetranslator):
             speech, source_lang=self.src_lang_tag, target_lang=self.tgt_lang_tag)
         return self.model.tokenizer.ids_to_tokens(output[0].y_sequence)
 
-    def _tokens_to_string(self, tokens: List[str]) -> str:
+    def tokens_to_string(self, tokens: List[str]) -> str:
         # avoid that the initial space, if it is there, get removed in the detokenization
         check_for_init_space = self.text_history is not None and len(self.text_history) > 0
         if check_for_init_space:

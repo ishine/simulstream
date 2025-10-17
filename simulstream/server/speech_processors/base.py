@@ -19,7 +19,8 @@ from typing import List, Union, Dict
 import numpy as np
 import torch
 
-from simulstream.server.speech_processors import SpeechProcessor, IncrementalOutput
+from simulstream.server.speech_processors import SpeechProcessor
+from simulstream.server.speech_processors.incremental_output import IncrementalOutput
 
 
 class BaseSpeechProcessor(SpeechProcessor):

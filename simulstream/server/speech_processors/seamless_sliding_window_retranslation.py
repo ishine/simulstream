@@ -53,7 +53,7 @@ class SeamlessSlidingWindowRetranslator(SlidingWindowRetranslator):
         return self.processor.tokenizer.convert_ids_to_tokens(
             generated_ids.squeeze(), skip_special_tokens=True)
 
-    def _tokens_to_string(self, tokens: List[str]) -> str:
+    def tokens_to_string(self, tokens: List[str]) -> str:
         # avoid that the initial space, if it is there, get removed in the detokenization
         if self.text_history is not None and len(self.text_history) > 0:
             tokens = [''] + tokens

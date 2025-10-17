@@ -20,7 +20,8 @@ import numpy as np
 from silero_vad import load_silero_vad, VADIterator
 
 from simulstream.server.speech_processors import SAMPLE_RATE, SpeechProcessor
-from simulstream.server.speech_processors.base import IncrementalOutput
+from simulstream.server.speech_processors.incremental_output import merge_incremental_outputs, \
+    IncrementalOutput
 
 
 class VADParentSpeechProcessor(SpeechProcessor):
@@ -58,10 +59,6 @@ class VADParentSpeechProcessor(SpeechProcessor):
         if not hasattr(cls, "vad_model") or cls.vad_model is None:
             cls.vad_model = load_silero_vad()
         cls.speech_processor_class.load_model(config)
-
-    @abstractmethod
-    def _tokens_to_string(self, tokens: List[str]) -> str:
-        ...
 
     def __init__(self, config: SimpleNamespace):
         super().__init__(config)
@@ -140,39 +137,16 @@ class VADParentSpeechProcessor(SpeechProcessor):
         if self.in_speech and len(self.speech_buffer) > self.min_speech_size:
             outputs.append(self.speech_processor.process_chunk(self.speech_buffer))
 
-        if len(outputs) == 1:
-            return outputs[0]
-        elif len(outputs) == 0:
-            return IncrementalOutput([], "", [], "")
-        else:
-            return self._merge_incremental_outputs(outputs)
-
-    def _merge_incremental_outputs(self, outputs: List[IncrementalOutput]) -> IncrementalOutput:
-        current_output_tokens = outputs[0].new_tokens
-        current_output_deleted_tokens = outputs[0].deleted_tokens
-        for output in outputs[1:]:
-            num_deleted_tokens = len(output.deleted_tokens)
-            if num_deleted_tokens > 0:
-                if num_deleted_tokens < len(current_output_tokens):
-                    assert output.deleted_tokens == current_output_tokens[-num_deleted_tokens:]
-                    current_output_tokens = current_output_tokens[:-num_deleted_tokens]
-                else:
-                    # we are deleting more than it was generated so far, so extra deleted tokens
-                    # should be included
-                    extra_deleted_tokens = output.deleted_tokens[:-len(current_output_tokens)]
-                    current_output_deleted_tokens = \
-                        extra_deleted_tokens + current_output_deleted_tokens
-                    current_output_tokens = []
-            current_output_tokens += output.new_tokens
-
-        return IncrementalOutput(
-            current_output_tokens,
-            self._tokens_to_string(current_output_tokens),
-            current_output_deleted_tokens,
-            self._tokens_to_string(current_output_deleted_tokens))
+        return merge_incremental_outputs(outputs, self.tokens_to_string)
 
     def set_source_language(self, language: str) -> None:
         self.speech_processor.set_source_language(language)
 
     def set_target_language(self, language: str) -> None:
         self.speech_processor.set_target_language(language)
+
+    def tokens_to_string(self, tokens: List[str]) -> str:
+        return self.speech_processor.tokens_to_string(tokens)
+
+    def end_of_stream(self) -> IncrementalOutput:
+        return self.speech_processor.end_of_stream()

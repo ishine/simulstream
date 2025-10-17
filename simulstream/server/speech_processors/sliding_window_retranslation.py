@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from abc import abstractmethod
 from difflib import SequenceMatcher
 from types import SimpleNamespace
 from typing import List
@@ -20,7 +19,8 @@ from typing import List
 import torch
 
 from simulstream.server.speech_processors import SAMPLE_RATE
-from simulstream.server.speech_processors.base import BaseSpeechProcessor, IncrementalOutput
+from simulstream.server.speech_processors.base import BaseSpeechProcessor
+from simulstream.server.speech_processors.incremental_output import IncrementalOutput
 
 
 class SlidingWindowRetranslator(BaseSpeechProcessor):
@@ -35,9 +35,6 @@ class SlidingWindowRetranslator(BaseSpeechProcessor):
 
     The approach relies on detecting the **longest common subsequence** between the current window
     and the previous one, in order to prevent repeating tokens caused by overlapping audio windows.
-
-    Subclasses must implement :meth:`_tokens_to_string` to define how token sequences are converted
-    into human-readable strings.
 
     Args:
        config (SimpleNamespace): Configuration object. The following attributes are expected:
@@ -61,10 +58,6 @@ class SlidingWindowRetranslator(BaseSpeechProcessor):
         self.max_tokens_per_second = getattr(self.config, "max_tokens_per_second", 10)
         self.within_first_window = True
 
-    @abstractmethod
-    def _tokens_to_string(self, tokens: List[str]) -> str:
-        ...
-
     def _build_incremental_outputs(self, generated_tokens: List[str]) -> IncrementalOutput:
         """
         Deduplicates the output stream of overlapping windows using the algorithm introduced in
@@ -77,7 +70,7 @@ class SlidingWindowRetranslator(BaseSpeechProcessor):
         """
         if self.text_history is None or len(self.text_history) == 0:
             self.text_history = generated_tokens
-            generated_string = self._tokens_to_string(generated_tokens)
+            generated_string = self.tokens_to_string(generated_tokens)
             return IncrementalOutput(
                 new_tokens=generated_tokens,
                 new_string=generated_string,
@@ -89,8 +82,8 @@ class SlidingWindowRetranslator(BaseSpeechProcessor):
         if longest_match.size >= self.matching_threshold * len(generated_tokens):
             new_tokens = generated_tokens[longest_match.b + longest_match.size:]
             deleted_tokens = self.text_history[longest_match.a + longest_match.size:]
-            new_string = self._tokens_to_string(new_tokens)
-            deleted_string = self._tokens_to_string(deleted_tokens)
+            new_string = self.tokens_to_string(new_tokens)
+            deleted_string = self.tokens_to_string(deleted_tokens)
             # we take the matching part and the last part of the generated string as part of
             # the history. Then we take from the history the tokens corresponding to the amount
             # generated in this step, to ensure we have a sufficiently wide window
@@ -104,13 +97,13 @@ class SlidingWindowRetranslator(BaseSpeechProcessor):
         else:
             if self.within_first_window or self.override_on_failed_match:
                 deleted_tokens = self.text_history
-                deleted_string = self._tokens_to_string(self.text_history)
+                deleted_string = self.tokens_to_string(self.text_history)
                 self.text_history = None
             else:
                 deleted_tokens = []
                 deleted_string = ""
             new_tokens = generated_tokens
-            new_string = self._tokens_to_string(generated_tokens)
+            new_string = self.tokens_to_string(generated_tokens)
             self.text_history = generated_tokens
         return IncrementalOutput(
             new_tokens=new_tokens,
@@ -133,6 +126,9 @@ class SlidingWindowRetranslator(BaseSpeechProcessor):
             generated_tokens: List[str],
             new_output: IncrementalOutput) -> None:
         pass
+
+    def end_of_stream(self) -> IncrementalOutput:
+        return IncrementalOutput([], "", [], "")
 
     def clear(self) -> None:
         super().clear()
