@@ -124,7 +124,7 @@ def main(args: argparse.Namespace):
 
 def cli_main():
     """
-    Simulstream evaluation command-line interface (CLI) entry point. This script processed the
+    Simulstream evaluation command-line interface (CLI) entry point. This script processes the
     specified wav files with the configured speech processor and can be used to get the metrics
     log file to evaluate the quality and latency of the speech processor.
 
