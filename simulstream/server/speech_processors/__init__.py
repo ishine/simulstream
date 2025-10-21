@@ -143,10 +143,27 @@ def build_speech_processor(speech_processor_config: SimpleNamespace) -> SpeechPr
     Raises:
         AssertionError: If the specified class is not a subclass of SpeechProcessor.
     """
-    module_path, class_name = speech_processor_config.type.rsplit('.', 1)
+    cls = speech_processor_class_load(speech_processor_config.type)
+    cls.load_model(speech_processor_config)
+    return cls(speech_processor_config)
+
+
+def speech_processor_class_load(speech_processor_class_string: str) -> type[SpeechProcessor]:
+    """
+    Import the speech processor class from its string definition.
+
+    Args:
+        speech_processor_class_string (str): Full name of the speech processor class to load.
+
+    Returns:
+        SpeechProcessorClass: A class object for the speech processor class.
+
+    Raises:
+        AssertionError: If the specified class is not a subclass of SpeechProcessor.
+    """
+    module_path, class_name = speech_processor_class_string.rsplit('.', 1)
     module = importlib.import_module(module_path)
     cls = getattr(module, class_name)
     assert issubclass(cls, SpeechProcessor), \
-        f"{speech_processor_config} must be a subclass of SpeechProcessor"
-    cls.load_model(speech_processor_config)
-    return cls(speech_processor_config)
+        f"{speech_processor_class_string} must be a subclass of SpeechProcessor"
+    return cls

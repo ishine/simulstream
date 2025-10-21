@@ -12,31 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-from abc import abstractmethod
 from types import SimpleNamespace
 from typing import List
 
 import numpy as np
 from silero_vad import load_silero_vad, VADIterator
 
-from simulstream.server.speech_processors import SAMPLE_RATE, SpeechProcessor
+from simulstream.server.speech_processors import SAMPLE_RATE, SpeechProcessor, \
+    speech_processor_class_load
 from simulstream.server.speech_processors.incremental_output import merge_incremental_outputs, \
     IncrementalOutput
 
 
-class VADParentSpeechProcessor(SpeechProcessor):
+class VADWrapperSpeechProcessor(SpeechProcessor):
     """
-    A parent class for speech processors that integrate **Voice Activity Detection (VAD)**
-    to filter and split continuous audio streams into meaningful speech chunks before processing.
+    A speech processor that integrates **Voice Activity Detection (VAD)** to filter and split
+    continuous audio streams into meaningful speech chunks before processing them with an
+    underlying speech processor.
 
-    This class wraps a :class:`SpeechProcessor` implementation (defined by subclasses via the
-    abstract :py:attr:`speech_processor_class`) with a Silero VAD-based iterator that detects the
+    This class wraps a :class:`SpeechProcessor` implementation (defined by in the configuration via
+    the attribute `base_speech_processor_class`) with a Silero VAD-based iterator that detects the
     start and end of speech segments. Audio outside of speech is ignored, and each detected segment
-    is passed to the inner speech processor.
+    is passed to the underlying speech processor.
 
     Args:
         config (SimpleNamespace): Configuration object. The following attributes are used:
 
+            - **base_speech_processor_class (str)**: full name of the underlying speech processor
+              class to use.
             - **vad_threshold (float, optional)**: VAD probability threshold. Default = ``0.5``.
             - **vad_min_silence_duration_ms (int, optional)**: Minimum silence duration
               (milliseconds) to consider the end of a speech segment. Default = ``100``.
@@ -48,21 +51,19 @@ class VADParentSpeechProcessor(SpeechProcessor):
     """
 
     @classmethod
-    @property
-    @abstractmethod
-    def speech_processor_class(cls) -> type[SpeechProcessor]:
-        ...
+    def speech_processor_class(cls, config: SimpleNamespace) -> type[SpeechProcessor]:
+        return speech_processor_class_load(config.base_speech_processor_class)
 
     @classmethod
     def load_model(cls, config: SimpleNamespace):
         super().load_model(config)
         if not hasattr(cls, "vad_model") or cls.vad_model is None:
             cls.vad_model = load_silero_vad()
-        cls.speech_processor_class.load_model(config)
+        cls.speech_processor_class(config).load_model(config)
 
     def __init__(self, config: SimpleNamespace):
         super().__init__(config)
-        self.speech_processor = self.speech_processor_class(self.config)
+        self.speech_processor = self.speech_processor_class(self.config)(self.config)
         self.min_speech_size = getattr(self.config, "min_speech_size", 1) * SAMPLE_RATE
         self.vad_iterator = VADIterator(
             self.vad_model,
