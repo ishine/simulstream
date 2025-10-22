@@ -327,7 +327,7 @@ class YamlReferenceReader:
             f"Number of reference sentences ({len(sentences)}) and sentence definitions " \
             f"({len(sentence_definitions)}) should be the same."
         for sentence, definition in zip(sentences, sentence_definitions):
-            wav_name = Path(reference).stem
+            wav_name = Path(definition["wav"]).stem
             if wav_name not in reference_by_file:
                 reference_by_file[wav_name] = []
             reference_by_file[wav_name].append(ReferenceSentenceDefinition(
