@@ -35,6 +35,16 @@ class LogReaderTestCase(unittest.TestCase):
             output_with_latency.text_len("word"),
             len(output_with_latency.computational_aware_delays))
 
+    def test_all_text_deleted(self):
+        metrics_file = ASSETS_DIR / "test_all_text_deleted.jsonl"
+        config_file = CONFIGS_DIR / "fama_hf_sliding_window_retranslation.yaml"
+        config = yaml_config(config_file)
+        log_reader = LogReader(config, metrics_file)
+        output_with_latency_by_wav = log_reader.final_outputs_and_latencies()
+        self.assertEqual(len(output_with_latency_by_wav), 1)
+        output_with_latency = next(iter(output_with_latency_by_wav.values()))
+        self.assertEqual(len(output_with_latency.ideal_delays), 6)
+
 
 if __name__ == '__main__':
     unittest.main()

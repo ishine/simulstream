@@ -213,11 +213,13 @@ class LogReader:
                     # if the latency unit is `word` and part of the last word has been deleted
                     # we update the latency of the last word
                     if self.latency_unit == "word":
-                        ending_word_before_update = current_output.text_items("word")[
-                            new_output.text_len("word") - 1]
-                        if ending_word_before_update != new_output.last_word():
-                            new_output.ideal_delays[-1] = line_delay
-                            new_output.computational_aware_delays[-1] = line_comp_aware_delay
+                        previous_ending_word_idx = new_output.text_len("word") - 1
+                        if previous_ending_word_idx >= 0:
+                            ending_word_before_update = current_output.text_items("word")[
+                                previous_ending_word_idx]
+                            if ending_word_before_update != new_output.last_word():
+                                new_output.ideal_delays[-1] = line_delay
+                                new_output.computational_aware_delays[-1] = line_comp_aware_delay
                     current_output = new_output
 
                 # add newly generated tokens

@@ -1,0 +1,6 @@
+{"model_loading_time": 5.9627768993377686}
+{"id": 6440336304, "metadata": {"wav_name": "mustc-enit-tst/ted_1096.wav"}}
+{"id": 6440336304, "total_audio_processed": 2.0, "computation_time": 5.257491111755371, "generated_tokens": ["\u2581Grazie", "\u2581a", "\u2581tutti"], "deleted_tokens": []}
+{"id": 6440336304, "total_audio_processed": 14.0, "computation_time": 4.223514795303345, "generated_tokens": [], "deleted_tokens": ["\u2581Grazie", "\u2581a", "\u2581tutti"]}
+{"id": 6440336304, "total_audio_processed": 16.0, "computation_time": 3.933152198791504, "generated_tokens": ["\u2581Tor", "na", "ndo", "\u2581a", "\u2581New", "\u2581York", ",", "\u2581io", "\u2581sono", "\u2581l", "'", "in", "se", "gna", "nte", "\u2581di", "\u2581New", "\u2581York", ","], "deleted_tokens": []}
+{"id": 6440336304, "total_audio_processed": 18.0, "computation_time": 5.007310152053833, "generated_tokens": ["\u2581Back", "\u2581in", "\u2581New", "\u2581York", ",", "\u2581io", "\u2581sono"], "deleted_tokens": ["\u2581Tor", "na", "ndo", "\u2581a", "\u2581New", "\u2581York", ",", "\u2581io", "\u2581sono", "\u2581l", "'", "in", "se", "gna", "nte", "\u2581di", "\u2581New", "\u2581York", ","]}
