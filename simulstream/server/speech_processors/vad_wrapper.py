@@ -79,6 +79,7 @@ class VADWrapperSpeechProcessor(SpeechProcessor):
         assert SAMPLE_RATE == 16000, \
             "SileroHFSlidingWindowRetranslator supports only 16kHz sampling rate"
         self.window_size_samples = 512  # assuming 16kHz
+        self.previous_audio_chunk = None  # needed as VAD uses padding before start
 
     def clear(self) -> None:
         super().clear()
@@ -86,6 +87,7 @@ class VADWrapperSpeechProcessor(SpeechProcessor):
         self.speech_buffer = None
         self.audio_cursor_position = 0
         self.in_speech = False
+        self.previous_audio_chunk = None
         self.vad_iterator.reset_states()
         self.speech_processor.clear()
 
@@ -111,34 +113,58 @@ class VADWrapperSpeechProcessor(SpeechProcessor):
                     assert not self.in_speech, \
                         "Cannot start a new segment when current one is being processed. " \
                         "This means there is a bug in the implementation."
-                    chunk_start_position = speech_dict['start'] - self.audio_cursor_position
-                    self.speech_buffer = chunk[chunk_start_position:]
+                    start_offset = self.audio_cursor_position - len(self.previous_audio_chunk)
+                    chunk_start_position = speech_dict['start'] - start_offset
+                    assert chunk_start_position >= 0
+                    self.speech_buffer = np.concatenate(
+                        (self.previous_audio_chunk, chunk))[chunk_start_position:]
                     self.in_speech = True
                 if 'end' in speech_dict:
                     assert self.in_speech, \
                         "Cannot end a segment when no current segment is being processed. " \
                         "This means there is a bug in the implementation."
-                    chunk_start_position = speech_dict['end'] - self.audio_cursor_position
-                    self.speech_buffer = np.concatenate(
-                        (self.speech_buffer, chunk[:chunk_start_position]))
+                    speech_buffer_len = len(self.speech_buffer) \
+                        if self.speech_buffer is not None else 0
+                    speech_buffer_offset = self.audio_cursor_position - speech_buffer_len
+                    chunk_end_position = speech_dict['end'] - speech_buffer_offset
+                    # In case we already processed more audio than needed (i.e., we already
+                    # processed beyond the end by VAD, we skip further processing; otherwise, we
+                    # process the remaining unhandled audio).
+                    # We can process more audio after the end as the VAD takes ~100ms (see the
+                    # min_silence_duration_ms parameter of the VAD) to emit the end signal, so if
+                    # we already processed the partial speech buffer (see min_speech_size in this
+                    # processor), we may have processed up to extra 100ms.
+                    if chunk_end_position >= 0:
+                        self.append_to_speech_buffer(chunk)
+                        self.speech_buffer = self.speech_buffer[:chunk_end_position]
+                        outputs.append(self.speech_processor.process_chunk(self.speech_buffer))
                     self.in_speech = False
-                    outputs.append(self.speech_processor.process_chunk(self.speech_buffer))
                     self.speech_buffer = None
                     # reset history at the end of a segment
-                    self.text_history = None
-                    self.audio_history = None
+                    if hasattr(self.speech_processor, 'text_history'):
+                        self.speech_processor.text_history = None
+                    if hasattr(self.speech_processor, 'audio_history'):
+                        self.speech_processor.audio_history = None
             else:
                 # if no VAD event happens, we just ignore the audio if we are outside speech and
                 # update the buffer in case we are in speech
                 if self.in_speech:
-                    self.speech_buffer = np.concatenate((self.speech_buffer, chunk))
+                    self.append_to_speech_buffer(chunk)
             # update cursor position
             self.audio_cursor_position += self.window_size_samples
+            self.previous_audio_chunk = chunk
 
         if self.in_speech and len(self.speech_buffer) > self.min_speech_size:
             outputs.append(self.speech_processor.process_chunk(self.speech_buffer))
+            self.speech_buffer = None
 
         return merge_incremental_outputs(outputs, self.tokens_to_string)
+
+    def append_to_speech_buffer(self, audio_chunk: np.float32) -> None:
+        if self.speech_buffer is None:
+            self.speech_buffer = audio_chunk
+        else:
+            self.speech_buffer = np.concatenate((self.speech_buffer, audio_chunk))
 
     def set_source_language(self, language: str) -> None:
         self.speech_processor.set_source_language(language)
