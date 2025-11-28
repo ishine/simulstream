@@ -94,9 +94,9 @@ class NormalizedErasure(Stats):
         return log_reader.num_deleted_tokens() / total_length
 
 
-class ComputationalCost(Stats):
+class RealTimeFactor(Stats):
     """
-    Compute the **Computational Cost per Audio Second** metric.
+    Compute the **Real Time Factor**.
 
     This measures how many seconds of computation are required on average
     for each second of input audio.
@@ -105,12 +105,13 @@ class ComputationalCost(Stats):
     and cannot process input before the next audio chunk arrives.
     """
     def name(self) -> str:
-        return "computational_cost_per_audio_second"
+        return "real_time_factor"
 
     def description(self) -> str:
-        return "The average computational cost, measured as seconds spent in computation, for " \
-               "each input audio second. Values higher than 1 mean that the system is not able " \
-               "to process the input in time before the next input arrives."
+        return "The Real Time Factor measures the average computational cost, ie. time in " \
+               "seconds spent in computation, for each input audio second. Values higher than 1 " \
+               "mean that the system is not able to process the input in time before the next " \
+               "input arrives."
 
     def compute(self, log_reader: LogReader) -> float:
         total_audio_lengths = sum(
@@ -137,7 +138,7 @@ def main(args: argparse.Namespace):
     log_reader = LogReader(eval_config, args.log_file, latency_unit=args.latency_unit)
 
     LOGGER.info("Computing stats")
-    stats_classes = [NormalizedErasure(), ComputationalCost()]
+    stats_classes = [NormalizedErasure(), RealTimeFactor()]
     stats = {
         stat.name(): {"description": stat.description(), "value": stat.compute(log_reader)}
         for stat in stats_classes
