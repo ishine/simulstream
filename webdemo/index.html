@@ -18,40 +18,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🎙️ FBK Simultaneous Translation Demo</title>
+  <title>🎙️ simulstream Demo</title>
   <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
   <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/x-icon" href="logo.png">
 </head>
 <body>
 
-  <div class="logo">
-    <img src="FBK_white_transp.png" alt="Logo">
+  <div class="navbar">
+    <div class="logo">
+      <span class="name">SimulStream</span>
+      <img src="logo.png" alt="Logo">
+    </div>
   </div>
 
-  <div class="container">
-    <h1>🎙️ FBK SimulST Demo</h1>
+  <div class="input-data container">
+    <div class="inputs">
+      <div class="language-selectors">
+        <div class="language-selector">
+          <label for="src_language">Source Language</label>
+          <select id="src_language">
+          </select>
+        </div>
+        <div class="flow-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+        </div>
+        <div class="language-selector">
+          <label for="tgt_language">Target Language</label>
+          <select id="tgt_language">
+          </select>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="startBtn">Start Recording</button>
+        <button id="stopBtn" disabled>Stop Recording</button>
+      </div>
+    </div>
     <canvas id="visualizer"></canvas>
-    <div class="language-selectors">
-      <div class="language-selector">
-        <label for="src_language">Input Language:</label>
-        <select id="src_language">
-        </select>
-      </div>
-      <div class="language-selector">
-        <label for="tgt_language">Output Language:</label>
-        <select id="tgt_language">
-        </select>
-      </div>
-    </div>
-    <div class="controls">
-      <button id="startBtn">Start Recording</button>
-      <button id="stopBtn" disabled>Stop Recording</button>
-    </div>
+  </div>
+
+  <div class="output-data container">
     <p id="status"><span class="pulse red"></span>Status: Idle</p>
-    <div id="transcript-box">
-      <h3>Output</h3>
-      <div id="transcript-text"></div>
-    </div>
+    <div id="transcript-text"></div>
   </div>
 
   <div id="credits" class="footer">
@@ -148,7 +158,7 @@
       analyser.getByteTimeDomainData(dataArray);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.lineWidth = 2;
-      ctx.strokeStyle = '#3b82f6';
+      ctx.strokeStyle = '#a78bfa';
       ctx.beginPath();
 
       const sliceWidth = canvas.width / dataArray.length;
