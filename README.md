@@ -1,3 +1,8 @@
+<div align="center">
+  <img src="docs/source/_static/logo.png" width="200" alt="simulstream logo">
+</div>
+
+
 # simulstream
 
 ``simulstream`` is a Python library for simultaneous/streaming speech recognition and translation.
