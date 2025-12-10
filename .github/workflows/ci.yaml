@@ -28,7 +28,7 @@ jobs:
           pip install virtualenv
           virtualenv venv
           source venv/bin/activate
-          pip install .[dev]
+          pip install .[dev,eval]
 
       - name: Lint
         run: |
